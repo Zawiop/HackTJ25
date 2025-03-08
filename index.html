@@ -1,32 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Website</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; text-align: center; }
-        header { background: #333; color: white; padding: 1rem; }
-        nav { display: flex; justify-content: center; gap: 15px; }
-        nav a { color: white; text-decoration: none; }
-        .hero { padding: 50px; background: lightgray; }
-        footer { background: #333; color: white; padding: 1rem; position: fixed; bottom: 0; width: 100%; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Media to Text Converter</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
+  <style>
+    /* Base styles */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      color: #333;
+    }
+    header {
+      background: #4CAF50;
+      color: #fff;
+      padding: 1rem 0;
+      text-align: center;
+    }
+    main {
+      padding: 2rem;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    input[type="file"] {
+      display: block;
+      margin: 1rem 0;
+      width: 100%;
+    }
+    button {
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    #output {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #f1f1f1;
+      border-radius: 4px;
+      min-height: 80px;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="#">Home</a>
-            <a href="#about">About</a>
-            <a href="#contact">Contact</a>
-        </nav>
-    </header>
-    <section class="hero">
-        <h1>Welcome to My Website</h1>
-        <p>This is a simple website that can be improved upon later.</p>
-    </section>
-    <footer>
-        &copy; 2025 My Website
-    </footer>
+  <header>
+    <h1>Media to Text Converter</h1>
+  </header>
+  <main>
+    <div class="container">
+      <label for="mediaInput">Select an audio or video file:</label>
+      <input type="file" id="mediaInput" accept="audio/*,video/*">
+      <button id="processBtn">Process File</button>
+      <div id="output">Your transcription will appear here...</div>
+    </div>
+  </main>
+  <script>
+    // JavaScript for handling file input and simulating backend processing.
+    document.getElementById('processBtn').addEventListener('click', function() {
+      const fileInput = document.getElementById('mediaInput');
+      const outputDiv = document.getElementById('output');
+
+      if (fileInput.files.length === 0) {
+        outputDiv.textContent = 'Please select an audio or video file first.';
+        return;
+      }
+
+      const file = fileInput.files[0];
+      
+      // WIP: Placeholder for backend integration.
+      // Here you would typically send the file to your backend API
+      // using fetch or XMLHttpRequest. For now, we'll simulate a delay.
+      outputDiv.textContent = `Processing "${file.name}"... (backend integration WIP)`;
+
+      // Simulated processing delay
+      setTimeout(() => {
+        // Placeholder result. Replace this with the actual response from your backend.
+        outputDiv.textContent = 'Transcribed text will appear here. (This is a placeholder)';
+      }, 2000);
+    });
+  </script>
 </body>
 </html>

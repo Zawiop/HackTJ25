@@ -1,41 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Career Helper</title>
-    <!-- Example Bootstrap (optional) -->
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-    />
-    <style>
-      body {
-        padding-top: 50px;
-        background-color: #f8f9fa;
-      }
-      .container {
-        max-width: 600px;
-      }
-      #question {
-        margin-top: 20px;
-        font-size: 1.25rem;
-        min-height: 50px;
-      }
-      .btn-custom {
-        background-color: #007bff;
-        color: white;
-      }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Career Helper</title>
+  <!-- Bootstrap CSS -->
+  <link
+    rel="stylesheet"
+    href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+  />
+  <!-- Google Font for modern look -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      padding-top: 50px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 600px;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    p {
+      font-size: 1rem;
+      color: #555;
+    }
+    #question {
+      margin-top: 20px;
+      font-size: 1.25rem;
+      min-height: 50px;
+      padding: 1rem;
+      border: 2px dashed #007bff;
+      border-radius: 8px;
+      background: #f0f8ff;
+    }
+    .btn-custom {
+      background: linear-gradient(45deg, #007bff, #0056b3);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      border-radius: 50px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      margin: 0 5px;
+    }
+    .btn-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .btn-custom:focus {
+      outline: none;
+      box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.5);
+    }
+    .button-group {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .text-box-group {
+      margin-top: 30px;
+    }
+    textarea {
+      resize: none;
+    }
+  </style>
 </head>
 <body>
-    <div class="container text-center">
-        <h1>Career Helper</h1>
-        <p>Answer our questions to help you discover your ideal career.</p>
-        <button id="nextBtn" class="btn btn-custom">Get Next Question</button>
-        <div id="question" class="mt-4"></div>
+  <div class="container text-center">
+    <h1>Career Helper</h1>
+    <p>Answer our questions to help you discover your ideal career.</p>
+    <div id="question" class="mt-4"></div>
+    
+    <!-- Button group for Yes, No, and Maybe -->
+    <div class="button-group">
+      <button id="yesBtn" class="btn btn-custom">Yes</button>
+      <button id="noBtn" class="btn btn-custom">No</button>
+      <button id="maybeBtn" class="btn btn-custom">Maybe</button>
     </div>
-    <!-- Load the JS from the static folder -->
-    <script src="{{ url_for('static', filename='career-helper.js') }}"></script>
+    
+    <!-- Text box for abstract questions and a submit button -->
+    <div class="text-box-group">
+      <textarea id="responseBox" class="form-control" rows="3" placeholder="Type your answer here..."></textarea>
+      <button id="submitResponse" class="btn btn-custom mt-2">Submit</button>
+    </div>
+  </div>
+  
+  <!-- Load the JS from the static folder -->
+  <script src="{{ url_for('static', filename='career-helper.js') }}"></script>
+  <script>
+    // Function to fetch and display the next question
+    function getNextQuestion() {
+      fetch('/get_question')
+        .then(response => response.json())
+        .then(data => {
+          const questionElement = document.getElementById('question');
+          const questionText = data.question;
+          if (data.is_final) {
+            questionElement.textContent = "Final Answer: " + questionText;
+            // Optionally disable answer buttons when finished
+            document.getElementById('yesBtn').disabled = true;
+            document.getElementById('noBtn').disabled = true;
+            document.getElementById('maybeBtn').disabled = true;
+            document.getElementById('submitResponse').disabled = true;
+          } else {
+            questionElement.textContent = questionText;
+          }
+        })
+        .catch(error => console.error('Error fetching question:', error));
+    }
+
+    // Automatically fetch the first question when the page loads
+    window.addEventListener('DOMContentLoaded', getNextQuestion);
+
+    // Event listeners for answer buttons
+    document.getElementById('yesBtn').addEventListener('click', function() {
+      console.log("Yes button clicked. Feature not implemented yet.");
+      getNextQuestion();
+    });
+    document.getElementById('noBtn').addEventListener('click', function() {
+      console.log("No button clicked. Feature not implemented yet.");
+      getNextQuestion();
+    });
+    document.getElementById('maybeBtn').addEventListener('click', function() {
+      console.log("Maybe button clicked. Feature not implemented yet.");
+      getNextQuestion();
+    });
+    
+    // Event listener for the submit button
+    document.getElementById('submitResponse').addEventListener('click', function() {
+      const responseBox = document.getElementById('responseBox');
+      const responseText = responseBox.value;
+      console.log("Submit clicked. Entered response:", responseText, " - Feature not implemented yet.");
+      // Clear the text box after submission
+      responseBox.value = "";
+      getNextQuestion();
+    });
+  </script>
 </body>
 </html>

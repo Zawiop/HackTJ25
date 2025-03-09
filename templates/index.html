@@ -28,7 +28,6 @@
       text-align: center;
       margin: 0.5rem 0;
     }
-
     h1 {
       font-weight: 600;
       margin-bottom: 0.5rem;
@@ -49,12 +48,38 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       color: #fff;
       font-size: 1.25rem;
+      /* Preserve line breaks in textContent */
+      white-space: pre-wrap;
     }
 
     /* The text that shows the question */
     #question {
       flex: 1;
-      /* Adjust font-size or line-height here if desired */
+    }
+
+    /* Container for answer choices */
+    .choices-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+      max-width: 600px;
+      margin: 0.5rem 0;
+      padding: 0 1.5rem;
+    }
+    .choice-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #fff;
+      border-radius: 25px;
+      padding: 0.5rem 1rem;
+      margin: 0.25rem 0;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      text-align: left;
+    }
+    .choice-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
 
     /* Glassy bar for the answer input */
@@ -73,14 +98,14 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    /* Container for mic + textarea (center-aligned) */
+    /* Container for hat + textarea (center-aligned) */
     .answer-input {
       display: flex;
       align-items: center;
       margin-bottom: 1rem;
     }
 
-    /* Mic button */
+    /* Hat button */
     .mic-btn {
       background: transparent;
       border: none;
@@ -100,7 +125,7 @@
       transform: scale(0.9);
     }
 
-    /* The textarea, now with a reduced height for alignment */
+    /* The textarea, with reduced height */
     #responseBox {
       background: transparent;
       border: none;
@@ -112,7 +137,6 @@
       height: 50px;
       padding: 0.75rem;
     }
-
     #responseBox::placeholder {
       color: rgba(255, 255, 255, 0.7);
     }
@@ -130,12 +154,10 @@
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-
     #submitResponse:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
-
     #submitResponse:focus {
       outline: none;
       box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.5);
@@ -151,13 +173,17 @@
     <div id="question">Loading question...</div>
   </div>
 
-  <!-- Glassy bar for the answer (mic icon is here) -->
-  <div class="answer-bar">
+  <!-- Container for answer choices (if available) -->
+  <div id="choicesContainer" class="choices-bar" style="display: none;"></div>
+
+  <!-- Glassy bar for the answer (hat icon + free text) -->
+  <div class="answer-bar" id="freeResponseContainer">
     <div class="answer-input">
-      <button id="recordResponse" class="mic-btn" onclick="startRecording()" aria-label="Start Recording">
-        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 12a3 3 0 0 0 3-3V4a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm3.5-3a.5.5 0 0 1 .5.5v.5a4 
-                   4 0 0 1-8 0v-.5a.5.5 0 0 1 1 0v.5a3 3 0 0 0 6 0v-.5a.5.5 0 0 1 .5-.5z"/>
+      <!-- Replace the mic icon with a college hat icon -->
+      <button id="recordResponse" class="mic-btn" aria-label="College Hat">
+        <!-- A simple graduation cap icon -->
+        <svg viewBox="0 0 24 24">
+          <path d="M12 3L1 8.5l11 5.5 11-5.5L12 3zm0 16.25c-2.33 0-4.32-.99-5.66-2.43v3.18L12 22l5.66-2v-3.18c-1.34 1.44-3.33 2.43-5.66 2.43z"/>
         </svg>
       </button>
       <textarea id="responseBox" placeholder="Type your answer here..."></textarea>
@@ -166,17 +192,105 @@
   </div>
 
   <script>
-    // Fetch the first question on page load
-    function fetchInitialQuestion() {
-      const questionElement = document.getElementById('question');
-      questionElement.textContent = "Loading first question...";
+    /************************************************************
+     * parseMultipleChoice(text):
+     * Attempts to split the text into:
+     *   1) A question portion
+     *   2) A set of labeled choices: a) or (a), b) or (b), etc.
+     * If no valid choices are found, returns { question: text, choices: null }.
+     ************************************************************/
+    function parseMultipleChoice(text) {
+      // Look for earliest mention of "a)" or "(a)" to separate question from choices
+      const firstChoicePattern = /[ (](a\))/i;
+      const firstMatch = text.search(firstChoicePattern);
+      if (firstMatch === -1) {
+        // No "a)" or "(a)" => treat entire text as free-response
+        return { question: text, choices: null };
+      }
 
+      // questionText is everything up to that "a)" or "(a)"
+      const questionText = text.slice(0, firstMatch).trim();
+      // the rest is the choices text
+      const choicesText = text.slice(firstMatch).trim();
+
+      // 2) Use a global regex to find all occurrences of a) or (a), b) or (b), etc.
+      //    capturing the letter and the text that follows
+      const re = /(\(?([a-eA-E])\)?\))\s*([^a-e]+)/g;
+      let choices = [];
+      let m;
+
+      while ((m = re.exec(choicesText)) !== null) {
+        // m[2] is "a" or "A", m[3] is the text for that choice
+        const letter = m[2].toLowerCase(); // "a", "b", etc.
+        const choiceText = m[3].trim();
+        choices.push(`(${letter}) ${choiceText}`);
+      }
+
+      if (choices.length === 0) {
+        // If we couldn't parse any valid choices, fallback
+        return { question: text, choices: null };
+      }
+
+      return { question: questionText, choices };
+    }
+
+    /************************************************************
+     * updateQuestionUI(text):
+     * 1) parseMultipleChoice(text)
+     * 2) If choices exist, display them as clickable buttons
+     *    AND show the question with line breaks in #question
+     ************************************************************/
+    function updateQuestionUI(text) {
+      const { question, choices } = parseMultipleChoice(text);
+
+      if (choices && choices.length > 0) {
+        // Build a multiline string for the question bar:
+        // Question on first line, blank line, then each choice on its own line
+        let multiline = question + "\n\n";
+        choices.forEach(choice => {
+          multiline += choice + "\n";
+        });
+        document.getElementById('question').textContent = multiline.trimEnd();
+
+        // Show multiple-choice buttons
+        const choicesContainer = document.getElementById('choicesContainer');
+        choicesContainer.style.display = 'flex';
+        choicesContainer.innerHTML = ""; // Clear old choices
+
+        choices.forEach(choice => {
+          const btn = document.createElement('button');
+          btn.textContent = choice;
+          btn.className = 'choice-btn';
+          btn.onclick = () => {
+            submitAnswer(choice);
+          };
+          choicesContainer.appendChild(btn);
+        });
+
+        // Hide free-response
+        document.getElementById('freeResponseContainer').style.display = 'none';
+      } else {
+        // No multiple-choice => free-response
+        document.getElementById('question').textContent = text;
+        document.getElementById('choicesContainer').style.display = 'none';
+        document.getElementById('freeResponseContainer').style.display = 'flex';
+      }
+    }
+
+    /************************************************************
+     * fetchInitialQuestion():
+     * Loads the first question from /get_initial_question
+     ************************************************************/
+    function fetchInitialQuestion() {
       fetch('/get_initial_question')
         .then(response => response.json())
         .then(data => {
           let text = data.question || "";
-          text = text.replace(/^My answer is:\s*/i, ""); // Remove any leading phrase
-          questionElement.textContent = text;
+          // Remove "My answer is:" if present
+          text = text.replace(/^My answer is:\s*/i, "");
+          // Remove any bold markers **
+          text = text.replace(/\*\*/g, "");
+          updateQuestionUI(text);
           if (data.is_final) {
             disableInput();
           }
@@ -184,11 +298,11 @@
         .catch(error => console.error('Error fetching initial question:', error));
     }
 
-    // Submit the user's answer and get the next question
+    /************************************************************
+     * submitAnswer(answer):
+     * Sends the user’s answer to /submit_answer, gets next Q
+     ************************************************************/
     function submitAnswer(answer) {
-      const questionElement = document.getElementById('question');
-      questionElement.textContent = "Loading next question...";
-
       fetch('/submit_answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -198,7 +312,9 @@
       .then(data => {
         let text = data.question || "";
         text = text.replace(/^My answer is:\s*/i, "");
-        questionElement.textContent = text;
+        // Remove any bold markers **
+        text = text.replace(/\*\*/g, "");
+        updateQuestionUI(text);
         if (data.is_final) {
           disableInput();
         }
@@ -206,14 +322,21 @@
       .catch(error => console.error('Error submitting answer:', error));
     }
 
-    // Disable the textarea and buttons if the process is complete
+    /************************************************************
+     * disableInput():
+     * Disables all input fields & buttons after final answer
+     ************************************************************/
     function disableInput() {
       document.getElementById('responseBox').disabled = true;
       document.getElementById('submitResponse').disabled = true;
       document.getElementById('recordResponse').disabled = true;
+      const choiceButtons = document.querySelectorAll('.choice-btn');
+      choiceButtons.forEach(btn => btn.disabled = true);
     }
 
-    // Event listener for the submit button
+    /************************************************************
+     * Setup event listeners
+     ************************************************************/
     document.getElementById('submitResponse').addEventListener('click', () => {
       const responseBox = document.getElementById('responseBox');
       const userText = responseBox.value.trim();
@@ -223,30 +346,26 @@
       }
     });
 
-    // Enable submission on Enter key (without Shift) in the textarea
+    // Press Enter (without shift) to submit
     document.getElementById('responseBox').addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        const responseBox = document.getElementById('responseBox');
-        const userText = responseBox.value.trim();
+        const userText = this.value.trim();
         if (userText) {
           submitAnswer(userText);
-          responseBox.value = "";
+          this.value = "";
         }
       }
     });
 
-    // Event listener for the mic button
+    // Hat button placeholder (implement your own logic)
     document.getElementById('recordResponse').addEventListener('click', () => {
-      startRecording();
+      alert("College hat clicked... (Implement any desired logic here.)");
     });
 
-    function startRecording() {
-      alert("Recording started...");
-      // Add your actual voice recording logic here
-    }
-
-    // Load initial question on DOM ready
+    /************************************************************
+     * On page load, fetch the initial question
+     ************************************************************/
     window.addEventListener('DOMContentLoaded', fetchInitialQuestion);
   </script>
 </body>

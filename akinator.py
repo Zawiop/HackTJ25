@@ -9,6 +9,7 @@ class AkinatorCareer:
             " You will ask a series of yes/no or multiple-choice questions to narrow down the user's career."
             " Each question should be refined based on previous responses."
             " Format each question with multiple-choice options."
+            " Keep all questions/responses simple and to the point."
             "\nQuestions:\nAnswers:"
         )
         self.send_message(self.orig_prompt)

@@ -1,45 +1,54 @@
-from flask import Flask, render_template, jsonify, request
-from google import genai
+from flask import Flask, render_template, request, jsonify
+import google.genai as genai
 
 app = Flask(__name__)
 
 class AkinatorCareer:
     def __init__(self, api_key):
+        # Initialize the Google GenAI client
         self.client = genai.Client(api_key=api_key)
+        # Create a chat session with a chosen model
         self.chat = self.client.chats.create(model="gemini-2.0-flash")
-        # This list will hold the full conversation history.
         self.history = []
-        self.orig_prompt = (
-            "You are an AI playing a career-matching game in an akinator style to assign the user a career "
-            "based on their personality/hobbies. You will ask a series of yes/no/maybe questions to narrow "
-            "down the user's career. Each question should be refined based on previous responses. Format "
-            "each question with multiple-choice options. Keep all questions/responses simple and to the point. "
-            "The goal is to match the user to their ideal career, so don't ask the user directly what their "
-            "career is, as they aren't sure either.\nQuestions:\nAnswers:"
+        
+        # A general introduction or “system” prompt
+        self.intro_prompt = (
+            "You are an AI playing a career-matching game in an Akinator style. "
+            "Ask the user a series of open-ended questions to figure out an ideal career. "
+            "Keep questions short, free-response, and refine them based on prior answers. "
+            "Don’t just ask for their desired career directly; lead them to it. "
+            "When you are certain, reveal the user's ideal career in a single statement."
         )
-        # Initialize the conversation history with the original prompt.
-        self.history.append(self.orig_prompt)
-        # Force the AI to produce a first question right away.
-        self.send_message("Ask your first question with multiple-choice options.")
+        self.history.append(self.intro_prompt)
 
-    def send_message(self, message, add_to_history=True):
+        # Ask for the first question right away
+        self.get_next_question("Please ask your first question now, expecting a free-response answer.")
+
+    def get_next_question(self, prompt):
         """
-        Appends the new message to the conversation (if desired), sends the full conversation
-        to the AI, and returns the AI's response text.
+        Sends a prompt to the model and updates history with the response.
         """
-        if add_to_history:
-            self.history.append(message)
-        # Concatenate the conversation history into one prompt.
+        self.history.append(prompt)
         full_prompt = "\n".join(self.history)
-        ai_response = self.chat.send_message(full_prompt)
-        response_text = ai_response.text.strip()
-        # Append the AI's response to the conversation history.
-        self.history.append(response_text)
-        return response_text
+        response = self.chat.send_message(full_prompt)
+        answer = response.text.strip()
+        self.history.append(answer)
+        return answer
 
-# Create a global instance of the career-guessing AI.
-api_key = "AIzaSyDzGSAgR6R7T6T0PJeMy6xCuPCVFdHtXHA"  # Replace with your actual API key.
-akinator = AkinatorCareer(api_key)
+    def user_answered(self, user_text):
+        """
+        Incorporates the user's answer, then asks the model to proceed.
+        """
+        if user_text:
+            # Append user’s answer
+            self.history.append(f"My answer is: {user_text}")
+        # Prompt the model for the next question or final result
+        next_step = "Please ask the next question unless you're ready to provide the final career."
+        return self.get_next_question(next_step)
+
+# Create a global instance of the AkinatorCareer
+# (Replace with your actual API key)
+global_akinator = AkinatorCareer(api_key="AIzaSyDzGSAgR6R7T6T0PJeMy6xCuPCVFdHtXHA")
 
 @app.route('/')
 def home():
@@ -48,31 +57,26 @@ def home():
 @app.route('/get_initial_question', methods=['GET'])
 def get_initial_question():
     """
-    Returns the first AI-generated question (the last entry in history),
-    which was produced in AkinatorCareer.__init__.
+    Returns the last message from the AI, which should be the first question.
     """
-    first_question = akinator.history[-1]
-    is_final = ("your career is" in first_question.lower() or "finish" in first_question.lower())
-    return jsonify({'question': first_question, 'is_final': is_final})
+    last_message = global_akinator.history[-1]
+    final_check = "your career is" in last_message.lower() or "finish" in last_message.lower()
+    return jsonify({'question': last_message, 'is_final': final_check})
 
 @app.route('/submit_answer', methods=['POST'])
 def submit_answer():
+    """
+    Receives the user's answer, sends it to the AI, and returns the AI's next question or final answer.
+    """
     data = request.get_json()
-    user_answer = data.get('answer', '').strip()
+    user_text = data.get('answer', '').strip()
     
-    # Only append the user's answer if it's not empty.
-    if user_answer:
-        _ = akinator.send_message(f"My answer is: {user_answer}")
+    # Pass the user's text to the conversation manager
+    new_response = global_akinator.user_answered(user_text)
     
-    # Re-prompt the AI with the full conversation history plus an instruction to continue.
-    next_question = akinator.send_message(
-        "Continue the conversation. Based on all previous questions and responses, ask the next question with multiple-choice options. Always provide a question unless you have determined the user's ideal career. Make it simple and to the point."
-    )
-    
-    # Determine if the AI indicates that the game is over.
-    is_final = ("your career is" in next_question.lower() or "finish" in next_question.lower())
-    
-    return jsonify({'question': next_question, 'is_final': is_final})
+    # Check if the AI is providing a final result
+    final_check = "your career is" in new_response.lower() or "finish" in new_response.lower()
+    return jsonify({'question': new_response, 'is_final': final_check})
 
 if __name__ == '__main__':
     app.run(debug=True)

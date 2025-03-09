@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Career Helper</title>
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
-  <!-- Google Font for modern look -->
+  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
     body {
@@ -14,6 +14,7 @@
       background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       padding-top: 50px;
       min-height: 100vh;
+      margin: 0;
     }
     .container {
       max-width: 600px;
@@ -30,6 +31,7 @@
       font-size: 1rem;
       color: #555;
     }
+    /* Dashed question box */
     #question {
       margin-top: 20px;
       font-size: 1.25rem;
@@ -39,7 +41,10 @@
       border-radius: 8px;
       background: #f0f8ff;
       text-align: left;
+      width: 100%;
+      box-sizing: border-box;
     }
+    /* Button style */
     .btn-custom {
       background: linear-gradient(45deg, #007bff, #0056b3);
       color: white;
@@ -49,7 +54,8 @@
       font-weight: 500;
       border-radius: 50px;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
-      margin: 5px;
+      margin-top: 10px;
+      cursor: pointer;
     }
     .btn-custom:hover {
       transform: translateY(-2px);
@@ -59,11 +65,29 @@
       outline: none;
       box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.5);
     }
-    .option-group {
+    /* Container for free-response input */
+    .input-container {
       margin-top: 20px;
       display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
+      flex-direction: column;
+      width: 100%;
+      border: 2px dashed #007bff;
+      border-radius: 8px;
+      background: #f0f8ff;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+    /* Text area styling */
+    .input-container textarea {
+      width: 100%;
+      min-height: 120px;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      padding: 0.75rem;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
     }
   </style>
 </head>
@@ -71,46 +95,39 @@
   <div class="container text-center">
     <h1>Career Helper</h1>
     <p>Answer our questions to help you discover your ideal career.</p>
+    
+    <!-- Dashed question box -->
     <div id="question" class="mt-4">Loading question...</div>
     
-    <!-- Option group for MCQ options: A through E -->
-    <div class="option-group mt-3">
-      <button id="optionA" class="btn btn-custom">A</button>
-      <button id="optionB" class="btn btn-custom">B</button>
-      <button id="optionC" class="btn btn-custom">C</button>
-      <button id="optionD" class="btn btn-custom">D</button>
-      <button id="optionE" class="btn btn-custom">E</button>
+    <!-- Text input container -->
+    <div class="input-container mt-3">
+      <textarea id="responseBox" placeholder="Type your answer here..."></textarea>
+      <button id="submitResponse" class="btn btn-custom">Submit Answer</button>
     </div>
   </div>
   
   <script>
-    // Function to fetch the first question from the server.
+    // Fetch the first question on page load
     function fetchInitialQuestion() {
       const questionElement = document.getElementById('question');
       questionElement.textContent = "Loading first question...";
       fetch('/get_initial_question')
         .then(response => response.json())
         .then(data => {
-          let formatted = data.question;
-          // Remove a leading "My answer is:" if present.
-          formatted = formatted.replace(/^My answer is:\s*/i, "");
-          // Insert a line break before option markers (A) to E) in either uppercase or lowercase.
-          formatted = formatted.replace(/([A-Ea-e]\))/g, '<br>$1');
-          // Optional: Add line breaks around question headings (e.g., **Question 1:**).
-          formatted = formatted.replace(/(\*\*Question\s*\d+:\*\*)/gi, '<br>$1<br>');
-          questionElement.innerHTML = formatted;
+          let text = data.question || "";
+          text = text.replace(/^My answer is:\s*/i, ""); // Remove any leading phrase
+          questionElement.textContent = text;
           if (data.is_final) {
-            disableAll();
+            disableInput();
           }
         })
         .catch(error => console.error('Error fetching initial question:', error));
     }
 
-    // Function that submits an answer to the backend.
+    // Submit the user's answer and get the next question
     function submitAnswer(answer) {
       const questionElement = document.getElementById('question');
       questionElement.textContent = "Loading next question...";
-      
       fetch('/submit_answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -118,38 +135,32 @@
       })
       .then(response => response.json())
       .then(data => {
-        let formatted = data.question;
-        // Remove any leading "My answer is:" from the AI response.
-        formatted = formatted.replace(/^My answer is:\s*/i, "");
-        // Insert a line break before each occurrence of option markers (A) to E) in either case.
-        formatted = formatted.replace(/([A-Ea-e]\))/g, '<br>$1');
-        // Optional: Add a line break around question headings if present.
-        formatted = formatted.replace(/(\*\*Question\s*\d+:\*\*)/gi, '<br>$1<br>');
-        questionElement.innerHTML = formatted;
+        let text = data.question || "";
+        text = text.replace(/^My answer is:\s*/i, "");
+        questionElement.textContent = text;
         if (data.is_final) {
-          disableAll();
+          disableInput();
         }
       })
       .catch(error => console.error('Error submitting answer:', error));
     }
-    
-    // Helper to disable all MCQ buttons.
-    function disableAll() {
-      document.getElementById('optionA').disabled = true;
-      document.getElementById('optionB').disabled = true;
-      document.getElementById('optionC').disabled = true;
-      document.getElementById('optionD').disabled = true;
-      document.getElementById('optionE').disabled = true;
+
+    // Disable the textarea and button if the game is done
+    function disableInput() {
+      document.getElementById('responseBox').disabled = true;
+      document.getElementById('submitResponse').disabled = true;
     }
-    
-    // Attach event listeners to the option buttons.
-    document.getElementById('optionA').addEventListener('click', () => submitAnswer("A"));
-    document.getElementById('optionB').addEventListener('click', () => submitAnswer("B"));
-    document.getElementById('optionC').addEventListener('click', () => submitAnswer("C"));
-    document.getElementById('optionD').addEventListener('click', () => submitAnswer("D"));
-    document.getElementById('optionE').addEventListener('click', () => submitAnswer("E"));
-    
-    // On page load, fetch the already-generated first question.
+
+    // Event listener for the button
+    document.getElementById('submitResponse').addEventListener('click', () => {
+      const responseBox = document.getElementById('responseBox');
+      const userText = responseBox.value.trim();
+      if (userText) {
+        submitAnswer(userText);
+        responseBox.value = "";
+      }
+    });
+
     window.addEventListener('DOMContentLoaded', fetchInitialQuestion);
   </script>
 </body>

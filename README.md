@@ -34,3 +34,11 @@ This project demonstrates how to integrate the [Google genai library](https://py
 - The `genai` Python library installed:  
   ```bash
   pip install genai
+
+## Live Demo
+
+Check out the live version of the Career Planner App here:  
+[https://careerplannerest25.sites.tjhsst.edu/](https://careerplannerest25.sites.tjhsst.edu/)
+
+
+...

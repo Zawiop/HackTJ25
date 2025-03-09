@@ -38,6 +38,7 @@
       border: 2px dashed #007bff;
       border-radius: 8px;
       background: #f0f8ff;
+      text-align: left;
     }
     .btn-custom {
       background: linear-gradient(45deg, #007bff, #0056b3);
@@ -48,7 +49,7 @@
       font-weight: 500;
       border-radius: 50px;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
-      margin: 0 5px;
+      margin: 5px;
     }
     .btn-custom:hover {
       transform: translateY(-2px);
@@ -58,11 +59,11 @@
       outline: none;
       box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.5);
     }
-    .button-group, .text-box-group {
+    .option-group {
       margin-top: 20px;
-    }
-    textarea {
-      resize: none;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
     }
   </style>
 </head>
@@ -72,25 +73,42 @@
     <p>Answer our questions to help you discover your ideal career.</p>
     <div id="question" class="mt-4">Loading question...</div>
     
-    <!-- Button group for Yes, No, and Maybe -->
-    <div class="button-group mt-3">
-      <button id="yesBtn" class="btn btn-custom">Yes</button>
-      <button id="noBtn" class="btn btn-custom">No</button>
-      <button id="maybeBtn" class="btn btn-custom">Maybe</button>
-    </div>
-    
-    <!-- Text box for abstract responses and a submit button -->
-    <div class="text-box-group mt-3">
-      <textarea id="responseBox" class="form-control" rows="3" placeholder="Type your answer here..."></textarea>
-      <button id="submitResponse" class="btn btn-custom mt-2">Submit</button>
+    <!-- Option group for MCQ options: A through E -->
+    <div class="option-group mt-3">
+      <button id="optionA" class="btn btn-custom">A</button>
+      <button id="optionB" class="btn btn-custom">B</button>
+      <button id="optionC" class="btn btn-custom">C</button>
+      <button id="optionD" class="btn btn-custom">D</button>
+      <button id="optionE" class="btn btn-custom">E</button>
     </div>
   </div>
   
   <script>
+    // Function to fetch the first question from the server.
+    function fetchInitialQuestion() {
+      const questionElement = document.getElementById('question');
+      questionElement.textContent = "Loading first question...";
+      fetch('/get_initial_question')
+        .then(response => response.json())
+        .then(data => {
+          let formatted = data.question;
+          // Remove a leading "My answer is:" if present.
+          formatted = formatted.replace(/^My answer is:\s*/i, "");
+          // Insert a line break before option markers (A) to E) in either uppercase or lowercase.
+          formatted = formatted.replace(/([A-Ea-e]\))/g, '<br>$1');
+          // Optional: Add line breaks around question headings (e.g., **Question 1:**).
+          formatted = formatted.replace(/(\*\*Question\s*\d+:\*\*)/gi, '<br>$1<br>');
+          questionElement.innerHTML = formatted;
+          if (data.is_final) {
+            disableAll();
+          }
+        })
+        .catch(error => console.error('Error fetching initial question:', error));
+    }
+
     // Function that submits an answer to the backend.
     function submitAnswer(answer) {
       const questionElement = document.getElementById('question');
-      // Immediately indicate that the next question is loading.
       questionElement.textContent = "Loading next question...";
       
       fetch('/submit_answer', {
@@ -100,43 +118,39 @@
       })
       .then(response => response.json())
       .then(data => {
-        questionElement.textContent = data.question;
+        let formatted = data.question;
+        // Remove any leading "My answer is:" from the AI response.
+        formatted = formatted.replace(/^My answer is:\s*/i, "");
+        // Insert a line break before each occurrence of option markers (A) to E) in either case.
+        formatted = formatted.replace(/([A-Ea-e]\))/g, '<br>$1');
+        // Optional: Add a line break around question headings if present.
+        formatted = formatted.replace(/(\*\*Question\s*\d+:\*\*)/gi, '<br>$1<br>');
+        questionElement.innerHTML = formatted;
         if (data.is_final) {
-          // Disable further inputs if the game is finished.
-          document.getElementById('yesBtn').disabled = true;
-          document.getElementById('noBtn').disabled = true;
-          document.getElementById('maybeBtn').disabled = true;
-          document.getElementById('submitResponse').disabled = true;
-          document.getElementById('responseBox').disabled = true;
+          disableAll();
         }
       })
       .catch(error => console.error('Error submitting answer:', error));
     }
     
-    // Attach event listeners to the answer buttons.
-    document.getElementById('yesBtn').addEventListener('click', function() {
-      submitAnswer("Yes");
-    });
-    document.getElementById('noBtn').addEventListener('click', function() {
-      submitAnswer("No");
-    });
-    document.getElementById('maybeBtn').addEventListener('click', function() {
-      submitAnswer("Maybe");
-    });
-    document.getElementById('submitResponse').addEventListener('click', function() {
-      const responseBox = document.getElementById('responseBox');
-      const text = responseBox.value.trim();
-      if (text) {
-        submitAnswer(text);
-        // Clear the text area after submission.
-        responseBox.value = "";
-      }
-    });
+    // Helper to disable all MCQ buttons.
+    function disableAll() {
+      document.getElementById('optionA').disabled = true;
+      document.getElementById('optionB').disabled = true;
+      document.getElementById('optionC').disabled = true;
+      document.getElementById('optionD').disabled = true;
+      document.getElementById('optionE').disabled = true;
+    }
     
-    // On page load, fetch the initial question by simulating an empty submission.
-    window.addEventListener('DOMContentLoaded', function() {
-      submitAnswer("");
-    });
+    // Attach event listeners to the option buttons.
+    document.getElementById('optionA').addEventListener('click', () => submitAnswer("A"));
+    document.getElementById('optionB').addEventListener('click', () => submitAnswer("B"));
+    document.getElementById('optionC').addEventListener('click', () => submitAnswer("C"));
+    document.getElementById('optionD').addEventListener('click', () => submitAnswer("D"));
+    document.getElementById('optionE').addEventListener('click', () => submitAnswer("E"));
+    
+    // On page load, fetch the already-generated first question.
+    window.addEventListener('DOMContentLoaded', fetchInitialQuestion);
   </script>
 </body>
 </html>

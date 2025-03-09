@@ -10,18 +10,17 @@ class AkinatorCareer:
         # This list will hold the full conversation history.
         self.history = []
         self.orig_prompt = (
-            "You are an AI playing a career-matching game in an akinator style to assign the user a career based on their personality/hobbies. "
-            "You will ask a series of yes/no/maybe questions to narrow down the user's career. "
-            "Each question should be refined based on previous responses. "
-            "Format each question with multiple-choice options. "
-            "Keep all questions/responses short and to the point. "
-            "The goal is to match the user to their ideal career, so don't ask the user directly what their career is, as they aren't sure either. "
-            "\nQuestions:\nAnswers:"
+            "You are an AI playing a career-matching game in an akinator style to assign the user a career "
+            "based on their personality/hobbies. You will ask a series of yes/no/maybe questions to narrow "
+            "down the user's career. Each question should be refined based on previous responses. Format "
+            "each question with multiple-choice options. Keep all questions/responses short and to the point. "
+            "The goal is to match the user to their ideal career, so don't ask the user directly what their "
+            "career is, as they aren't sure either.\nQuestions:\nAnswers:"
         )
         # Initialize the conversation history with the original prompt.
         self.history.append(self.orig_prompt)
-        # (Optionally) send the original prompt to set context.
-        # self.send_message(self.orig_prompt, add_to_history=False)
+        # Force the AI to produce a first question right away.
+        self.send_message("Ask your first question with multiple-choice options.")
 
     def send_message(self, message, add_to_history=True):
         """
@@ -46,13 +45,24 @@ akinator = AkinatorCareer(api_key)
 def home():
     return render_template('index.html')
 
+@app.route('/get_initial_question', methods=['GET'])
+def get_initial_question():
+    """
+    Returns the first AI-generated question (the last entry in history),
+    which was produced in AkinatorCareer.__init__.
+    """
+    first_question = akinator.history[-1]
+    is_final = ("your career is" in first_question.lower() or "finish" in first_question.lower())
+    return jsonify({'question': first_question, 'is_final': is_final})
+
 @app.route('/submit_answer', methods=['POST'])
 def submit_answer():
     data = request.get_json()
-    user_answer = data.get('answer', '')
+    user_answer = data.get('answer', '').strip()
     
-    # Append the user's answer into the conversation.
-    _ = akinator.send_message(f"My answer is: {user_answer}")
+    # Only append the user's answer if it's not empty.
+    if user_answer:
+        _ = akinator.send_message(f"My answer is: {user_answer}")
     
     # Re-prompt the AI with the full conversation history plus an instruction to continue.
     next_question = akinator.send_message(

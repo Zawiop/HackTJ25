@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Career Helper</title>
   <!-- Bootstrap CSS -->
-  <link
-    rel="stylesheet"
-    href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-  />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
   <!-- Google Font for modern look -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
@@ -61,13 +58,8 @@
       outline: none;
       box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.5);
     }
-    .button-group {
+    .button-group, .text-box-group {
       margin-top: 20px;
-      display: flex;
-      justify-content: center;
-    }
-    .text-box-group {
-      margin-top: 30px;
     }
     textarea {
       resize: none;
@@ -78,71 +70,69 @@
   <div class="container text-center">
     <h1>Career Helper</h1>
     <p>Answer our questions to help you discover your ideal career.</p>
-    <div id="question" class="mt-4"></div>
+    <div id="question" class="mt-4">Loading question...</div>
     
     <!-- Button group for Yes, No, and Maybe -->
-    <div class="button-group">
+    <div class="button-group mt-3">
       <button id="yesBtn" class="btn btn-custom">Yes</button>
       <button id="noBtn" class="btn btn-custom">No</button>
       <button id="maybeBtn" class="btn btn-custom">Maybe</button>
     </div>
     
-    <!-- Text box for abstract questions and a submit button -->
-    <div class="text-box-group">
+    <!-- Text box for abstract responses and a submit button -->
+    <div class="text-box-group mt-3">
       <textarea id="responseBox" class="form-control" rows="3" placeholder="Type your answer here..."></textarea>
       <button id="submitResponse" class="btn btn-custom mt-2">Submit</button>
     </div>
   </div>
   
-  <!-- Load the JS from the static folder -->
-  <script src="{{ url_for('static', filename='career-helper.js') }}"></script>
   <script>
-    // Function to fetch and display the next question
-    function getNextQuestion() {
-      fetch('/get_question')
-        .then(response => response.json())
-        .then(data => {
-          const questionElement = document.getElementById('question');
-          const questionText = data.question;
-          if (data.is_final) {
-            questionElement.textContent = "Final Answer: " + questionText;
-            // Optionally disable answer buttons when finished
-            document.getElementById('yesBtn').disabled = true;
-            document.getElementById('noBtn').disabled = true;
-            document.getElementById('maybeBtn').disabled = true;
-            document.getElementById('submitResponse').disabled = true;
-          } else {
-            questionElement.textContent = questionText;
-          }
-        })
-        .catch(error => console.error('Error fetching question:', error));
+    // Function that submits an answer to the backend.
+    function submitAnswer(answer) {
+      fetch('/submit_answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answer: answer })
+      })
+      .then(response => response.json())
+      .then(data => {
+        const questionElement = document.getElementById('question');
+        questionElement.textContent = data.question;
+        if (data.is_final) {
+          // Disable further inputs if the game is finished.
+          document.getElementById('yesBtn').disabled = true;
+          document.getElementById('noBtn').disabled = true;
+          document.getElementById('maybeBtn').disabled = true;
+          document.getElementById('submitResponse').disabled = true;
+          document.getElementById('responseBox').disabled = true;
+        }
+      })
+      .catch(error => console.error('Error submitting answer:', error));
     }
-
-    // Automatically fetch the first question when the page loads
-    window.addEventListener('DOMContentLoaded', getNextQuestion);
-
-    // Event listeners for answer buttons
+    
+    // Attach event listeners to the answer buttons.
     document.getElementById('yesBtn').addEventListener('click', function() {
-      console.log("Yes button clicked. Feature not implemented yet.");
-      getNextQuestion();
+      submitAnswer("Yes");
     });
     document.getElementById('noBtn').addEventListener('click', function() {
-      console.log("No button clicked. Feature not implemented yet.");
-      getNextQuestion();
+      submitAnswer("No");
     });
     document.getElementById('maybeBtn').addEventListener('click', function() {
-      console.log("Maybe button clicked. Feature not implemented yet.");
-      getNextQuestion();
+      submitAnswer("Maybe");
     });
-    
-    // Event listener for the submit button
     document.getElementById('submitResponse').addEventListener('click', function() {
       const responseBox = document.getElementById('responseBox');
-      const responseText = responseBox.value;
-      console.log("Submit clicked. Entered response:", responseText, " - Feature not implemented yet.");
-      // Clear the text box after submission
-      responseBox.value = "";
-      getNextQuestion();
+      const text = responseBox.value.trim();
+      if (text) {
+        submitAnswer(text);
+        // Clear the text area after submission.
+        responseBox.value = "";
+      }
+    });
+    
+    // On page load, fetch the initial question by simulating an empty submission.
+    window.addEventListener('DOMContentLoaded', function() {
+      submitAnswer("");
     });
   </script>
 </body>

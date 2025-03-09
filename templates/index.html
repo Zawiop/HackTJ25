@@ -89,6 +89,10 @@
   <script>
     // Function that submits an answer to the backend.
     function submitAnswer(answer) {
+      const questionElement = document.getElementById('question');
+      // Immediately indicate that the next question is loading.
+      questionElement.textContent = "Loading next question...";
+      
       fetch('/submit_answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,7 +100,6 @@
       })
       .then(response => response.json())
       .then(data => {
-        const questionElement = document.getElementById('question');
         questionElement.textContent = data.question;
         if (data.is_final) {
           // Disable further inputs if the game is finished.

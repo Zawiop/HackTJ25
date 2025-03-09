@@ -13,11 +13,12 @@ class AkinatorCareer:
         
         # A general introduction or “system” prompt
         self.intro_prompt = (
-            "You are an AI playing a career-matching game in an Akinator style. "
-            "Ask the user a series of open-ended questions to figure out an ideal career. "
-            "Keep questions short, free-response, and refine them based on prior answers. "
-            "Don’t just ask for their desired career directly; lead them to it. "
-            "When you are certain, reveal the user's ideal career in a single statement."
+            "You are an AI playing a career-matching game in an akinator style to assign the user a career "
+            "based on their personality/hobbies. You will ask a series of yes/no/maybe questions to narrow "
+            "down the user's career. Each question should be refined based on previous responses. Format "
+            "each question with multiple-choice options. Keep all questions/responses simple and to the point. "
+            "The goal is to match the user to their ideal career, so don't ask the user directly what their "
+            "career is, as they aren't sure either.\nQuestions:\nAnswers:"
         )
         self.history.append(self.intro_prompt)
 

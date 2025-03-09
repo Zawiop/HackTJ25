@@ -4,113 +4,173 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Career Helper</title>
-  <!-- Bootstrap CSS -->
+  <!-- (Optional) Bootstrap CSS for button styling -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      padding-top: 50px;
-      min-height: 100vh;
       margin: 0;
-    }
-    .container {
-      max-width: 600px;
-      background: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      /* Soft gradient background */
+      background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
+      font-family: 'Poppins', sans-serif;
       padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
     }
+
+    /* Title and subtitle text */
+    h1, p {
+      color: #fff;
+      text-align: center;
+      margin: 0.5rem 0;
+    }
+
     h1 {
       font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Glassy bar for the question */
+    .question-bar {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      max-width: 600px;
+      padding: 1rem 1.5rem;
+      margin: 1rem 0;
+      border-radius: 50px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-size: 1.25rem;
+    }
+
+    /* The text that shows the question */
+    #question {
+      flex: 1;
+      /* Adjust font-size or line-height here if desired */
+    }
+
+    /* Glassy bar for the answer input */
+    .answer-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+      max-width: 600px;
+      padding: 1rem 1.5rem;
+      margin: 1rem 0;
+      border-radius: 50px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Container for mic + textarea (center-aligned) */
+    .answer-input {
+      display: flex;
+      align-items: center;
       margin-bottom: 1rem;
     }
-    p {
+
+    /* Mic button */
+    .mic-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      margin-right: 1rem;
+      display: flex;
+      align-items: center;
+      padding: 0;
+    }
+    .mic-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: #fff;
+      transition: transform 0.2s ease;
+    }
+    .mic-btn:active svg {
+      transform: scale(0.9);
+    }
+
+    /* The textarea, now with a reduced height for alignment */
+    #responseBox {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
       font-size: 1rem;
-      color: #555;
-    }
-    /* Dashed question box */
-    #question {
-      margin-top: 20px;
-      font-size: 1.25rem;
-      min-height: 50px;
-      padding: 1rem;
-      border: 2px dashed #007bff;
-      border-radius: 8px;
-      background: #f0f8ff;
-      text-align: left;
+      resize: none;
       width: 100%;
-      box-sizing: border-box;
+      height: 50px;
+      padding: 0.75rem;
     }
-    /* Button style */
-    .btn-custom {
+
+    #responseBox::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Submit button */
+    #submitResponse {
+      align-self: flex-end;
       background: linear-gradient(45deg, #007bff, #0056b3);
-      color: white;
+      color: #fff;
       border: none;
       padding: 0.75rem 1.5rem;
       font-size: 1rem;
       font-weight: 500;
       border-radius: 50px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      margin-top: 10px;
       cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .btn-custom:hover {
+
+    #submitResponse:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
-    .btn-custom:focus {
+
+    #submitResponse:focus {
       outline: none;
       box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.5);
-    }
-    /* Container for free-response input */
-    .input-container {
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      border: 2px dashed #007bff;
-      border-radius: 8px;
-      background: #f0f8ff;
-      padding: 1rem;
-      box-sizing: border-box;
-    }
-    /* Text area styling */
-    .input-container textarea {
-      width: 100%;
-      min-height: 120px;
-      font-size: 1rem;
-      margin-bottom: 10px;
-      padding: 0.75rem;
-      box-sizing: border-box;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      resize: vertical;
     }
   </style>
 </head>
 <body>
-  <div class="container text-center">
-    <h1>Career Helper</h1>
-    <p>Answer our questions to help you discover your ideal career.</p>
-    
-    <!-- Dashed question box -->
-    <div id="question" class="mt-4">Loading question...</div>
-    
-    <!-- Text input container -->
-    <div class="input-container mt-3">
-      <textarea id="responseBox" placeholder="Type your answer here..."></textarea>
-      <button id="submitResponse" class="btn btn-custom">Submit Answer</button>
-    </div>
+  <h1>Career Helper</h1>
+  <p>Answer our questions to help you discover your ideal career.</p>
+
+  <!-- Glassy bar for the question -->
+  <div class="question-bar">
+    <div id="question">Loading question...</div>
   </div>
-  
+
+  <!-- Glassy bar for the answer (mic icon is here) -->
+  <div class="answer-bar">
+    <div class="answer-input">
+      <button id="recordResponse" class="mic-btn" onclick="startRecording()" aria-label="Start Recording">
+        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 12a3 3 0 0 0 3-3V4a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm3.5-3a.5.5 0 0 1 .5.5v.5a4 
+                   4 0 0 1-8 0v-.5a.5.5 0 0 1 1 0v.5a3 3 0 0 0 6 0v-.5a.5.5 0 0 1 .5-.5z"/>
+        </svg>
+      </button>
+      <textarea id="responseBox" placeholder="Type your answer here..."></textarea>
+    </div>
+    <button id="submitResponse">Submit Answer</button>
+  </div>
+
   <script>
     // Fetch the first question on page load
     function fetchInitialQuestion() {
       const questionElement = document.getElementById('question');
       questionElement.textContent = "Loading first question...";
+
       fetch('/get_initial_question')
         .then(response => response.json())
         .then(data => {
@@ -128,6 +188,7 @@
     function submitAnswer(answer) {
       const questionElement = document.getElementById('question');
       questionElement.textContent = "Loading next question...";
+
       fetch('/submit_answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -145,13 +206,14 @@
       .catch(error => console.error('Error submitting answer:', error));
     }
 
-    // Disable the textarea and button if the game is done
+    // Disable the textarea and buttons if the process is complete
     function disableInput() {
       document.getElementById('responseBox').disabled = true;
       document.getElementById('submitResponse').disabled = true;
+      document.getElementById('recordResponse').disabled = true;
     }
 
-    // Event listener for the button
+    // Event listener for the submit button
     document.getElementById('submitResponse').addEventListener('click', () => {
       const responseBox = document.getElementById('responseBox');
       const userText = responseBox.value.trim();
@@ -161,6 +223,30 @@
       }
     });
 
+    // Enable submission on Enter key (without Shift) in the textarea
+    document.getElementById('responseBox').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const responseBox = document.getElementById('responseBox');
+        const userText = responseBox.value.trim();
+        if (userText) {
+          submitAnswer(userText);
+          responseBox.value = "";
+        }
+      }
+    });
+
+    // Event listener for the mic button
+    document.getElementById('recordResponse').addEventListener('click', () => {
+      startRecording();
+    });
+
+    function startRecording() {
+      alert("Recording started...");
+      // Add your actual voice recording logic here
+    }
+
+    // Load initial question on DOM ready
     window.addEventListener('DOMContentLoaded', fetchInitialQuestion);
   </script>
 </body>

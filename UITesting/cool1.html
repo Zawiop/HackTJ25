@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Glassmorphism Search Bar</title>
+  <style>
+    /* Reset and basic styling */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* A gradient background to highlight the glass effect */
+      background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Container for the search bar */
+    .search-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 400px;
+      padding: 12px 20px;
+      border-radius: 50px;
+      
+      /* Glassmorphism styles */
+      background: rgba(255, 255, 255, 0.1); /* Translucent white */
+      backdrop-filter: blur(10px);          /* Frosted glass effect */
+      -webkit-backdrop-filter: blur(10px); /* Safari support */
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Microphone icon */
+    .search-container svg {
+      width: 24px;
+      height: 24px;
+      margin-right: 12px;
+      fill: #fff; /* Icon color - adjust as needed */
+      flex-shrink: 0; /* Prevent the icon from shrinking */
+    }
+
+    /* Search input */
+    .search-container input {
+      background: transparent;
+      border: none;
+      outline: none;
+      width: 100%;
+      font-size: 16px;
+      color: #fff; /* Text color - adjust for contrast */
+    }
+
+    .search-container input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="search-container">
+    <!-- Microphone icon (Inline SVG) -->
+    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 12a3 3 0 0 0 3-3V4a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm3.5-3a.5.5 0 0 1 .5.5v.5a4 
+               4 0 0 1-8 0v-.5a.5.5 0 0 1 1 0v.5a3 3 0 0 0 6 0v-.5a.5.5 0 0 1 .5-.5z"/>
+    </svg>
+
+    <!-- Search input -->
+    <input type="text" placeholder="What are you looking for today?" />
+  </div>
+
+</body>
+</html>

@@ -8,7 +8,7 @@ aai.settings.api_key = "971e871c17ba4246b3786122fb1f0760"
 
 # Recording parameters
 samplerate = 44100  # 44.1 kHz (CD Quality)
-duration = 10  # Duration in seconds
+duration = 20  # Duration in seconds
 
 print("Recording...")
 audio_data = sd.rec(int(samplerate * duration), samplerate=samplerate, channels=2, dtype='int16')
